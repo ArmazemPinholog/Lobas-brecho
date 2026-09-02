@@ -1,0 +1,29 @@
+# Configuração de deploy da Netlify.
+# Deixe este arquivo na raiz do projeto, ao lado do package.json.
+
+[build]
+  command = "npm run build"
+  publish = "dist"
+
+[build.environment]
+  NODE_VERSION = "20"
+
+# Cache longo para os arquivos com hash no nome (JS, CSS, fontes).
+# O index.html fica de fora de propósito: ele precisa ser sempre revalidado,
+# senão o navegador serve uma versão antiga apontando para bundles que já sumiram.
+[[headers]]
+  for = "/assets/*"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000, immutable"
+
+[[headers]]
+  for = "/index.html"
+  [headers.values]
+    Cache-Control = "public, max-age=0, must-revalidate"
+
+# Redirect de SPA: só faz diferença se você adicionar rotas depois.
+# Hoje o site é uma página só, então isso é prevenção barata.
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
