@@ -1,7 +1,7 @@
 {
   "name": "lobas-brecho",
   "private": true,
-  "version": "1.0.0",
+  "version": "2.0.0",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -11,12 +11,14 @@
   "dependencies": {
     "@react-three/drei": "^9.114.0",
     "@react-three/fiber": "^8.17.10",
+    "@supabase/supabase-js": "^2.45.4",
     "framer-motion": "^11.11.9",
     "gsap": "^3.12.5",
     "lenis": "^1.1.14",
     "lucide-react": "^0.453.0",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
+    "react-router-dom": "^6.27.0",
     "three": "^0.169.0"
   },
   "devDependencies": {

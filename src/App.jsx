@@ -1,36 +1,54 @@
-import { useEffect } from 'react'
-import { ScrollTrigger } from 'gsap/ScrollTrigger'
-import { useSmoothScroll } from './hooks/useSmoothScroll'
-import CursorEstrela from './components/CursorEstrela'
-import Navegacao from './components/Navegacao'
-import Hero from './components/Hero'
-import Faixa from './components/Faixa'
-import Vitrine from './components/Vitrine'
-import Manifesto from './components/Manifesto'
-import Rodape from './components/Rodape'
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
+import { SiteProvider } from './lib/site'
+import { CarrinhoProvider } from './lib/carrinho'
+import { AuthProvider, useAuth } from './lib/auth'
+import Layout from './components/Layout'
+import Home from './paginas/Home'
+import Acervo from './paginas/Acervo'
+import Blog from './paginas/Blog'
+import Post from './paginas/Post'
+import Closet from './paginas/Closet'
+import Entrar from './paginas/admin/Entrar'
+import Painel from './paginas/admin/Painel'
+
+/** Rota do painel: sem sessão, manda para o login. */
+function Protegida({ children }) {
+  const { sessao, carregando } = useAuth()
+  if (carregando) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-breu">
+        <p className="font-stencil tracking-[0.3em] text-osso/40">CARREGANDO</p>
+      </div>
+    )
+  }
+  return sessao ? children : <Navigate to="/entrar" replace />
+}
 
 export default function App() {
-  useSmoothScroll()
-
-  // Depois que fontes e canvas assentam, as alturas mudam: recalcula os triggers.
-  useEffect(() => {
-    const recalcular = () => ScrollTrigger.refresh()
-    document.fonts?.ready.then(recalcular)
-    window.addEventListener('load', recalcular)
-    return () => window.removeEventListener('load', recalcular)
-  }, [])
-
   return (
-    <div className="grain vinheta relative min-h-screen bg-breu">
-      <CursorEstrela />
-      <Navegacao />
-      <main>
-        <Hero />
-        <Faixa />
-        <Vitrine />
-        <Manifesto />
-      </main>
-      <Rodape />
-    </div>
+    <BrowserRouter>
+      <AuthProvider>
+        <SiteProvider>
+          <CarrinhoProvider>
+            <Routes>
+              {/* Site público */}
+              <Route element={<Layout />}>
+                <Route path="/" element={<Home />} />
+                <Route path="/acervo" element={<Acervo />} />
+                <Route path="/blog" element={<Blog />} />
+                <Route path="/blog/:slug" element={<Post />} />
+                <Route path="/closet" element={<Closet />} />
+              </Route>
+
+              {/* Painel */}
+              <Route path="/entrar" element={<Entrar />} />
+              <Route path="/admin/*" element={<Protegida><Painel /></Protegida>} />
+
+              <Route path="*" element={<Navigate to="/" replace />} />
+            </Routes>
+          </CarrinhoProvider>
+        </SiteProvider>
+      </AuthProvider>
+    </BrowserRouter>
   )
 }
