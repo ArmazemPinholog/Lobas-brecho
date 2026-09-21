@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { X, MessageCircle, Check } from 'lucide-react'
+import BrilhoOlhos from './BrilhoOlhos'
 import { urlArquivo, precoVigente, emPromocao, dinheiro } from '../lib/supabase'
 import { useCarrinho, mensagemPeca } from '../lib/carrinho'
 import { useSite, linkWhats } from '../lib/site'
@@ -123,11 +124,14 @@ export default function FichaPeca({ peca, onFechar }) {
                 <button
                   onClick={() => adicionar(peca)}
                   disabled={naSacola || !config.vendas_ativas}
-                  className={`flex w-full items-center justify-center gap-2 py-4 font-stencil text-sm tracking-[0.35em] transition-colors ${
+                  className={`group relative flex w-full items-center justify-center gap-2 overflow-hidden py-4 font-stencil text-sm tracking-[0.35em] transition-colors ${
                     naSacola ? 'border border-osso/20 text-osso/40' : 'bg-sangue text-osso hover:bg-osso hover:text-breu'
                   }`}
                 >
-                  {naSacola ? <><Check size={16} strokeWidth={2} /> NA SACOLA</> : 'COLOCAR NA SACOLA'}
+                  {!naSacola && <BrilhoOlhos />}
+                  <span className="relative z-10 flex items-center gap-2">
+                    {naSacola ? <><Check size={16} strokeWidth={2} /> NA SACOLA</> : 'COLOCAR NA SACOLA'}
+                  </span>
                 </button>
               )}
 

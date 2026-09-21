@@ -5,6 +5,7 @@ import CursorEstrela from './CursorEstrela'
 import Navegacao from './Navegacao'
 import Rodape from './Rodape'
 import SacolaPainel from './SacolaPainel'
+import SomAmbiente from './SomAmbiente'
 import { useSite } from '../lib/site'
 
 export default function Layout() {
@@ -31,6 +32,7 @@ export default function Layout() {
       </main>
       <Rodape />
       <SacolaPainel />
+      <SomAmbiente />
     </div>
   )
 }

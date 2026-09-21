@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { Plus, Pencil, Trash2, X, ArrowUp, ArrowDown, Type, Image, Images, Video, Mic } from 'lucide-react'
 import { supabase, urlArquivo } from '../../lib/supabase'
 import { Campo, Texto, Botao, Aviso, BotaoUpload } from './ui'
+import { Carregando, ErroCarregamento } from '../../components/Estado'
 
 const NOVO = { slug: '', titulo: '', resumo: '', capa: null, blocos: [], publicado: false }
 
@@ -15,10 +16,13 @@ function gerarSlug(titulo) {
 
 export default function AdminBlog() {
   const [posts, setPosts] = useState(null)
+  const [erro, setErro] = useState(false)
   const [editando, setEditando] = useState(null)
 
   const carregar = async () => {
-    const { data } = await supabase.from('posts').select('*').order('criado_em', { ascending: false })
+    setErro(false)
+    const { data, error } = await supabase.from('posts').select('*').order('criado_em', { ascending: false })
+    if (error) { setErro(true); return }
     setPosts(data || [])
   }
 
@@ -43,8 +47,10 @@ export default function AdminBlog() {
         </Botao>
       </div>
 
-      {posts === null ? (
-        <p className="font-stencil text-sm tracking-[0.3em] text-osso/30">CARREGANDO</p>
+      {erro ? (
+        <ErroCarregamento mensagem="Não foi possível carregar os posts." onTentar={carregar} />
+      ) : posts === null ? (
+        <Carregando />
       ) : posts.length === 0 ? (
         <div className="border border-dashed border-osso/15 py-20 text-center">
           <p className="font-stencil text-sm tracking-[0.3em] text-osso/40">NENHUM POST CRIADO</p>

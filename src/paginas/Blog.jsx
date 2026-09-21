@@ -3,21 +3,31 @@ import { Link } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { supabase, urlArquivo } from '../lib/supabase'
 import { useSite } from '../lib/site'
+import { Carregando, ErroCarregamento } from '../components/Estado'
+import { useTitulo } from '../hooks/useTitulo'
 
 export default function Blog() {
   const { texto } = useSite()
+  useTitulo('Blog', texto('blog.texto') || 'Histórias e novidades da Lobas Brechó.')
   const [posts, setPosts] = useState(null)
+  const [erro, setErro] = useState(false)
+  const [tentativa, setTentativa] = useState(0)
 
   useEffect(() => {
     let vivo = true
+    setPosts(null)
+    setErro(false)
     supabase
       .from('posts')
       .select('id, slug, titulo, resumo, capa, publicado_em, blocos')
       .eq('publicado', true)
       .order('publicado_em', { ascending: false })
-      .then(({ data }) => vivo && setPosts(data || []))
+      .then(({ data, error }) => {
+        if (!vivo) return
+        error ? setErro(true) : setPosts(data || [])
+      })
     return () => { vivo = false }
-  }, [])
+  }, [tentativa])
 
   return (
     <section className="mx-auto max-w-[1400px] px-6 pb-28 pt-40 md:px-12 md:pb-40">
@@ -26,8 +36,10 @@ export default function Blog() {
         {texto('blog.texto') && <p className="mt-6 max-w-[48ch] text-sm leading-relaxed text-osso/50">{texto('blog.texto')}</p>}
       </header>
 
-      {posts === null ? (
-        <p className="py-20 text-center font-stencil text-sm tracking-[0.3em] text-osso/30">CARREGANDO</p>
+      {erro ? (
+        <ErroCarregamento mensagem="Não foi possível carregar o blog agora." onTentar={() => setTentativa((t) => t + 1)} />
+      ) : posts === null ? (
+        <Carregando />
       ) : posts.length === 0 ? (
         <div className="flex flex-col items-center gap-3 border border-dashed border-osso/15 py-24 text-center">
           <p className="font-stencil text-sm tracking-[0.3em] text-osso/40">NENHUM POST PUBLICADO AINDA</p>

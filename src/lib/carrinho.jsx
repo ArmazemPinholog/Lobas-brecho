@@ -73,7 +73,9 @@ export function mensagemPedido(itens, total) {
     '',
     `Total das peças: ${dinheiro(total)}`,
     '',
-    'Pode me passar o pagamento e a entrega?',
+    // Reforça a regra da reserva de 1h (ver /como-funciona) pra cliente
+    // saber que precisa fechar rápido, sem depender de já ter lido a página.
+    'Sei que ficam reservadas por 1 hora — pode me passar o pagamento e a entrega?',
   ].join('\n')
 }
 

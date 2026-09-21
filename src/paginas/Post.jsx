@@ -2,6 +2,8 @@ import { useEffect, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import { ArrowLeft } from 'lucide-react'
 import { supabase, urlArquivo } from '../lib/supabase'
+import { Carregando, ErroCarregamento } from '../components/Estado'
+import { useTitulo } from '../hooks/useTitulo'
 
 /** Extrai o id do vídeo e devolve o endereço de incorporação (YouTube ou Vimeo). */
 function urlEmbed(url = '') {
@@ -75,21 +77,40 @@ function Bloco({ bloco }) {
 export default function Post() {
   const { slug } = useParams()
   const [post, setPost] = useState(undefined)  // undefined = carregando, null = não achou
+  const [erro, setErro] = useState(false)
+  const [tentativa, setTentativa] = useState(0)
 
   useEffect(() => {
     let vivo = true
+    setPost(undefined)
+    setErro(false)
     supabase
       .from('posts')
       .select('*')
       .eq('slug', slug)
       .eq('publicado', true)
       .maybeSingle()
-      .then(({ data }) => vivo && setPost(data || null))
+      .then(({ data, error }) => {
+        if (!vivo) return
+        error ? setErro(true) : setPost(data || null)
+      })
     return () => { vivo = false }
-  }, [slug])
+  }, [slug, tentativa])
+
+  useTitulo(post?.titulo, post?.resumo)
+
+  if (erro) {
+    return (
+      <ErroCarregamento
+        className="py-60"
+        mensagem="Não foi possível carregar este post agora."
+        onTentar={() => setTentativa((t) => t + 1)}
+      />
+    )
+  }
 
   if (post === undefined) {
-    return <p className="py-60 text-center font-stencil text-sm tracking-[0.3em] text-osso/30">CARREGANDO</p>
+    return <Carregando className="py-60" />
   }
 
   if (post === null) {

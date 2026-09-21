@@ -1,9 +1,13 @@
-import { Suspense, useLayoutEffect, useRef } from 'react'
+import { lazy, Suspense, useLayoutEffect, useRef } from 'react'
 import { Link } from 'react-router-dom'
 import gsap from 'gsap'
-import HeroScene from '../three/HeroScene'
 import Estrela from './Estrela'
+import BrilhoOlhos from './BrilhoOlhos'
 import { useSite } from '../lib/site'
+
+// three.js + @react-three/fiber/drei pesam bastante no pacote principal —
+// carregam só quando a Hero realmente monta, nunca bloqueando o resto do site.
+const HeroScene = lazy(() => import('../three/HeroScene'))
 
 export default function Hero() {
   const raiz = useRef(null)
@@ -24,6 +28,27 @@ export default function Hero() {
 
   return (
     <section ref={raiz} className="relative flex min-h-[100svh] flex-col justify-end overflow-hidden pb-16 pt-32">
+      {/* Lobo em vídeo: camada atmosférica atrás da estrela 3D, que continua
+          sendo o símbolo principal da marca. Fundo preto puro do vídeo some
+          com mix-blend-screen, igual à técnica já usada no ELEMENTO_3 do
+          Manifesto — sem precisar de chroma-key. Escondido no mobile para
+          não pesar em conexão/bateria numa faixa estreita demais pra valer. */}
+      <div aria-hidden="true" className="pointer-events-none absolute inset-y-0 right-0 z-0 hidden w-[46%] items-center overflow-hidden lg:flex">
+        <video
+          autoPlay
+          muted
+          loop
+          playsInline
+          preload="metadata"
+          poster="/video/hero-lobo-poster.jpg"
+          className="h-[88%] w-full object-cover object-center opacity-60 mix-blend-screen"
+          onError={(e) => { e.currentTarget.style.display = 'none' }}
+        >
+          <source src="/video/hero-lobo.webm" type="video/webm" />
+          <source src="/video/hero-lobo.mp4" type="video/mp4" />
+        </video>
+      </div>
+
       <div data-reveal="canvas" className="absolute inset-0 z-0">
         <Suspense fallback={null}><HeroScene /></Suspense>
       </div>
@@ -63,6 +88,7 @@ export default function Hero() {
               to="/acervo"
               className="group relative inline-flex items-center overflow-hidden bg-sangue px-9 py-4 font-stencil text-sm tracking-[0.35em] text-osso"
             >
+              <BrilhoOlhos />
               <span className="absolute inset-0 origin-bottom scale-y-0 bg-osso transition-transform duration-500 ease-loba group-hover:scale-y-100" />
               <span className="relative z-10 transition-colors duration-300 group-hover:text-breu">{texto('hero.botao')}</span>
             </Link>

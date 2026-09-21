@@ -10,6 +10,7 @@ const links = [
   { rotulo: 'Acervo', para: '/acervo' },
   { rotulo: 'Closet', para: '/closet' },
   { rotulo: 'Blog', para: '/blog' },
+  { rotulo: 'Como funciona', para: '/como-funciona' },
 ]
 
 export default function Navegacao() {

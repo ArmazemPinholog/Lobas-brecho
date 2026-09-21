@@ -25,6 +25,13 @@ export default function Manifesto() {
         yPercent: -14, rotate: 4, ease: 'none',
         scrollTrigger: { trigger: raiz.current, start: 'top bottom', end: 'bottom top', scrub: true },
       })
+      // Silhueta do lobo: mesmo esquema de paralaxe via scrub, deslocamento
+      // menor e no sentido oposto da pata — profundidades diferentes pra
+      // não ler como um espelhamento do mesmo elemento.
+      gsap.fromTo('[data-lobo-perfil]', { yPercent: -8, xPercent: -3 }, {
+        yPercent: 8, xPercent: 2, ease: 'none',
+        scrollTrigger: { trigger: raiz.current, start: 'top bottom', end: 'bottom top', scrub: true },
+      })
     }, raiz)
     return () => ctx.revert()
   }, [carregando])
@@ -37,6 +44,13 @@ export default function Manifesto() {
         data-pata src="/brand/ELEMENTO_3.png" alt="" aria-hidden="true"
         onError={(e) => { e.currentTarget.style.display = 'none' }}
         className="pointer-events-none absolute -right-16 top-1/2 w-[28rem] -translate-y-1/2 opacity-[0.12] mix-blend-screen md:w-[42rem]"
+      />
+      {/* O lobo entra aqui como motivo recorrente, mas discreto: gravura em
+          silhueta, baixa opacidade, sem disputar com o texto. */}
+      <img
+        data-lobo-perfil src="/brand/lobo-perfil-osso.png" alt="" aria-hidden="true"
+        onError={(e) => { e.currentTarget.style.display = 'none' }}
+        className="pointer-events-none absolute -left-24 top-[12%] w-[22rem] opacity-[0.09] mix-blend-screen md:w-[32rem]"
       />
       <div className="relative mx-auto grid max-w-[1600px] grid-cols-12 gap-y-14 px-6 md:px-12">
         <div className="col-span-12 lg:col-span-7">

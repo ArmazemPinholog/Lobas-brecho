@@ -27,6 +27,16 @@ const PADROES = {
   'closet.texto': 'Monte o look arrastando as peças sobre o manequim.',
   'rodape.titulo': 'Tem peça parada aí?',
   'rodape.texto': '',
+  'como.titulo': 'Como funciona',
+  'como.texto': 'Do garimpo até a peça na sua mão — o passo a passo de como a gente vende por aqui.',
+  'como.garimpo_titulo': 'Garimpo e reserva de 1 hora',
+  'como.garimpo_texto': 'Cada peça é única. Ao colocar na sacola, ela fica reservada só pra você por 1 hora enquanto vocês combinam os detalhes no WhatsApp — depois disso, volta pro acervo pra quem mais quiser.',
+  'como.entrega_titulo': 'Entrega só em Curitiba',
+  'como.entrega_texto': 'Por enquanto entregamos apenas em Curitiba, combinado direto pelo WhatsApp. Fora da cidade ainda não rola — mas fica de olho, isso pode mudar.',
+  'como.pagamento_titulo': 'Pagamento fora do site',
+  'como.pagamento_texto': 'Não vendemos direto por aqui: depois de reservar a peça, a forma de pagamento e o valor final são combinados na conversa do WhatsApp.',
+  'como.troca_titulo': 'Política de troca',
+  'como.troca_texto': 'Cada peça é vintage e única — o estado de uso está descrito na ficha antes da compra. Ainda assim, por ser uma compra combinada fora de loja física, você tem direito de arrependimento em até 7 dias corridos após receber a peça, conforme o art. 49 do Código de Defesa do Consumidor — é só avisar pelo WhatsApp. Fora desse prazo, trocas são avaliadas caso a caso.',
 }
 
 const CONFIG_PADRAO = {

@@ -2,6 +2,8 @@ import { useEffect, useState } from 'react'
 import { Plus, Pencil, Trash2, X, Star } from 'lucide-react'
 import { supabase, urlArquivo, dinheiro, precoVigente } from '../../lib/supabase'
 import { Campo, Texto, Selecao, Botao, Aviso, BotaoUpload } from './ui'
+import RemocaoFundo from './RemocaoFundo'
+import { Carregando, ErroCarregamento } from '../../components/Estado'
 
 const STATUS = [
   ['rascunho', 'Rascunho (não aparece no site)'],
@@ -21,6 +23,22 @@ const CAMADAS = [
   ['acessorio', 'Acessório'],
 ]
 
+// Sugestão automática da camada do provador a partir do texto da categoria.
+// É só um ponto de partida: a lojista sempre pode trocar no seletor.
+const PISTAS_CAMADA = [
+  [/vestido|macac[ãa]o|jumpsuit|overall/i, 'corpo_inteiro'],
+  [/cal[çc]a|saia|short|bermuda/i, 'baixo'],
+  [/camis|blusa|regata|\btop\b|cropped|croped|su[eé]ter|malha/i, 'topo'],
+  [/jaqueta|casaco|blazer|cardigan|trench|sobretudo/i, 'sobreposicao'],
+  [/t[êe]nis|sapato|bota|sand[áa]lia|chinelo|scarpin/i, 'calcado'],
+  [/bolsa|cinto|[óo]culos|chap[ée]u|bon[ée]|colar|brinco|len[çc]o|luva/i, 'acessorio'],
+]
+
+function sugerirCamada(categoria) {
+  const achado = PISTAS_CAMADA.find(([pista]) => pista.test(categoria))
+  return achado ? achado[1] : ''
+}
+
 const VAZIA = {
   codigo: '', nome: '', detalhe: '', historia: '', categoria: '', tamanho: '', estado: '',
   medidas: '', preco: '', preco_promo: '', promo_ate: '', status: 'rascunho',
@@ -29,13 +47,16 @@ const VAZIA = {
 
 export default function AdminPecas() {
   const [pecas, setPecas] = useState(null)
+  const [erro, setErro] = useState(false)
   const [editando, setEditando] = useState(null)
 
   const carregar = async () => {
-    const { data } = await supabase
+    setErro(false)
+    const { data, error } = await supabase
       .from('pecas')
       .select('*, peca_fotos(id, caminho, ordem)')
       .order('criada_em', { ascending: false })
+    if (error) { setErro(true); return }
     setPecas(data || [])
   }
 
@@ -66,8 +87,10 @@ export default function AdminPecas() {
         </Botao>
       </div>
 
-      {pecas === null ? (
-        <p className="font-stencil text-sm tracking-[0.3em] text-osso/30">CARREGANDO</p>
+      {erro ? (
+        <ErroCarregamento mensagem="Não foi possível carregar as peças." onTentar={carregar} />
+      ) : pecas === null ? (
+        <Carregando />
       ) : pecas.length === 0 ? (
         <div className="border border-dashed border-osso/15 py-20 text-center">
           <p className="font-stencil text-sm tracking-[0.3em] text-osso/40">NENHUMA PEÇA CADASTRADA</p>
@@ -131,6 +154,14 @@ function Formulario({ inicial, onFechar, onSalvo }) {
   const [salvando, setSalvando] = useState(false)
 
   const campo = (k) => ({ value: f[k] ?? '', onChange: (e) => setF({ ...f, [k]: e.target.value }) })
+
+  // Sugere a camada do provador pela categoria digitada, mas nunca troca
+  // uma escolha que a lojista já fez à mão.
+  useEffect(() => {
+    if (f.closet_slot || !f.categoria.trim()) return
+    const sugestao = sugerirCamada(f.categoria)
+    if (sugestao) setF((atual) => (atual.closet_slot ? atual : { ...atual, closet_slot: sugestao }))
+  }, [f.categoria, f.closet_slot])
 
   const salvar = async () => {
     setErro('')
@@ -264,13 +295,26 @@ function Formulario({ inicial, onFechar, onSalvo }) {
           </Campo>
 
           <div className="border-t border-osso/10 pt-5">
-            <Campo rotulo="Provador virtual" dica="Só funciona com PNG de fundo removido">
-              <div className="mt-2 space-y-3">
+            <Campo rotulo="Provador virtual" dica="Sugerimos a camada pela categoria — troque se não bater.">
+              <div className="mt-2 space-y-4">
                 <Selecao opcoes={CAMADAS} {...campo('closet_slot')} />
-                <BotaoUpload
-                  rotulo="FOTO SEM FUNDO (PNG)" aceita="image/png" bucket="pecas" pasta="closet"
+
+                <RemocaoFundo
+                  bucket="pecas" pasta="closet"
                   onPronto={(caminho) => setF({ ...f, closet_foto: caminho })}
                 />
+
+                <div className="flex items-center gap-3">
+                  <span className="h-px flex-1 bg-osso/10" />
+                  <span className="text-[0.65rem] tracking-[0.2em] text-osso/25">OU</span>
+                  <span className="h-px flex-1 bg-osso/10" />
+                </div>
+
+                <BotaoUpload
+                  rotulo="ENVIAR PNG JÁ SEM FUNDO" aceita="image/png" bucket="pecas" pasta="closet"
+                  onPronto={(caminho) => setF({ ...f, closet_foto: caminho })}
+                />
+
                 {f.closet_foto && (
                   <div className="flex items-center gap-3">
                     <img src={urlArquivo(f.closet_foto)} alt="" className="h-20 w-16 object-contain" />

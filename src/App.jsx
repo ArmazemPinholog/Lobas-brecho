@@ -8,6 +8,7 @@ import Acervo from './paginas/Acervo'
 import Blog from './paginas/Blog'
 import Post from './paginas/Post'
 import Closet from './paginas/Closet'
+import ComoFunciona from './paginas/ComoFunciona'
 import Entrar from './paginas/admin/Entrar'
 import Painel from './paginas/admin/Painel'
 
@@ -38,6 +39,7 @@ export default function App() {
                 <Route path="/blog" element={<Blog />} />
                 <Route path="/blog/:slug" element={<Post />} />
                 <Route path="/closet" element={<Closet />} />
+                <Route path="/como-funciona" element={<ComoFunciona />} />
               </Route>
 
               {/* Painel */}

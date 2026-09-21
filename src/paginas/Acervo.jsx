@@ -1,8 +1,10 @@
 import GradeDePecas from '../components/GradeDePecas'
 import { useSite } from '../lib/site'
+import { useTitulo } from '../hooks/useTitulo'
 
 export default function Acervo() {
   const { texto } = useSite()
+  useTitulo('Acervo', texto('acervo.texto') || 'O acervo de peças únicas da Lobas Brechó.')
 
   return (
     <section className="mx-auto max-w-[1600px] px-6 pb-28 pt-40 md:px-12 md:pb-40">

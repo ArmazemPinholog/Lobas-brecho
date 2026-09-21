@@ -1,17 +1,24 @@
 import { useEffect, useState } from 'react'
 import { supabase } from '../../lib/supabase'
 import { Campo, Texto, Botao, Aviso } from './ui'
+import { Carregando, ErroCarregamento } from '../../components/Estado'
 
 /** Contato, entrega e avisos: o que muda sem precisar de código. */
 export default function AdminLoja() {
   const [c, setC] = useState(null)
+  const [erro, setErro] = useState(false)
   const [salvando, setSalvando] = useState(false)
   const [aviso, setAviso] = useState('')
+  const [tentativa, setTentativa] = useState(0)
 
   useEffect(() => {
+    setC(null)
+    setErro(false)
     supabase.from('config_loja').select('*').eq('id', 1).maybeSingle()
-      .then(({ data }) => setC(data || { id: 1 }))
-  }, [])
+      .then(({ data, error }) => {
+        error ? setErro(true) : setC(data || { id: 1 })
+      })
+  }, [tentativa])
 
   const campo = (k) => ({ value: c?.[k] ?? '', onChange: (e) => setC({ ...c, [k]: e.target.value }) })
 
@@ -23,7 +30,8 @@ export default function AdminLoja() {
     setAviso(error ? 'Erro ao salvar: ' + error.message : 'Configuração salva. Recarregue o site para ver.')
   }
 
-  if (c === null) return <p className="font-stencil text-sm tracking-[0.3em] text-osso/30">CARREGANDO</p>
+  if (erro) return <ErroCarregamento mensagem="Não foi possível carregar a configuração da loja." onTentar={() => setTentativa((t) => t + 1)} />
+  if (c === null) return <Carregando />
 
   return (
     <div>
@@ -46,11 +54,11 @@ export default function AdminLoja() {
           <Texto {...campo('aviso_topo')} placeholder="Peças novas toda quarta às 19h" />
         </Campo>
 
-        <Campo rotulo="Entrega local" dica="Aparece na sacola">
+        <Campo rotulo="Entrega local" dica="Aparece na sacola. Hoje a loja só entrega em Curitiba.">
           <Texto multilinha linhas={3} {...campo('entrega_local')} />
         </Campo>
 
-        <Campo rotulo="Entrega para fora" dica="Aparece na sacola">
+        <Campo rotulo="Entrega para fora de Curitiba" dica="Deixe vazio enquanto não entregarem fora da cidade — some da sacola sozinho.">
           <Texto multilinha linhas={3} {...campo('entrega_correios')} />
         </Campo>
       </div>

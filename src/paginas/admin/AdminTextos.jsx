@@ -1,20 +1,26 @@
 import { useEffect, useState } from 'react'
 import { supabase } from '../../lib/supabase'
 import { Campo, Texto, Botao, Aviso } from './ui'
+import { Carregando, ErroCarregamento } from '../../components/Estado'
 
 /** Edição das frases do site. Cada campo diz onde aparece, para não editar às cegas. */
 export default function AdminTextos() {
   const [linhas, setLinhas] = useState(null)
+  const [erro, setErro] = useState(false)
   const [valores, setValores] = useState({})
   const [salvando, setSalvando] = useState(false)
   const [aviso, setAviso] = useState('')
+  const [tentativa, setTentativa] = useState(0)
 
   useEffect(() => {
-    supabase.from('textos').select('*').order('grupo').order('ordem').then(({ data }) => {
+    setLinhas(null)
+    setErro(false)
+    supabase.from('textos').select('*').order('grupo').order('ordem').then(({ data, error }) => {
+      if (error) { setErro(true); return }
       setLinhas(data || [])
       setValores(Object.fromEntries((data || []).map((l) => [l.chave, l.valor])))
     })
-  }, [])
+  }, [tentativa])
 
   const salvar = async () => {
     setSalvando(true)
@@ -27,7 +33,8 @@ export default function AdminTextos() {
     setAviso(error ? 'Erro ao salvar: ' + error.message : 'Textos salvos. Recarregue o site para ver.')
   }
 
-  if (linhas === null) return <p className="font-stencil text-sm tracking-[0.3em] text-osso/30">CARREGANDO</p>
+  if (erro) return <ErroCarregamento mensagem="Não foi possível carregar os textos." onTentar={() => setTentativa((t) => t + 1)} />
+  if (linhas === null) return <Carregando />
 
   const grupos = [...new Set(linhas.map((l) => l.grupo))]
 

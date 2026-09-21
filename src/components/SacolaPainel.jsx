@@ -1,5 +1,6 @@
 import { motion, AnimatePresence } from 'framer-motion'
 import { X, Trash2 } from 'lucide-react'
+import BrilhoOlhos from './BrilhoOlhos'
 import { useCarrinho, mensagemPedido } from '../lib/carrinho'
 import { useSite, linkWhats } from '../lib/site'
 import { dinheiro } from '../lib/supabase'
@@ -83,9 +84,10 @@ export default function SacolaPainel() {
                   target="_blank"
                   rel="noreferrer"
                   onClick={() => setAberto(false)}
-                  className="mt-6 block bg-sangue py-4 text-center font-stencil text-sm tracking-[0.35em] text-osso transition-colors hover:bg-osso hover:text-breu"
+                  className="group relative mt-6 block overflow-hidden bg-sangue py-4 text-center font-stencil text-sm tracking-[0.35em] text-osso transition-colors hover:bg-osso hover:text-breu"
                 >
-                  FECHAR NO WHATSAPP
+                  <BrilhoOlhos />
+                  <span className="relative z-10">FECHAR NO WHATSAPP</span>
                 </a>
               ) : (
                 <p className="mt-6 border border-osso/15 py-4 text-center font-stencil text-xs tracking-[0.3em] text-osso/30">

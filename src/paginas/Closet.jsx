@@ -4,6 +4,8 @@ import { RotateCcw, Trash2, ShoppingBag, Minus, Plus } from 'lucide-react'
 import { supabase, urlArquivo, precoVigente, dinheiro } from '../lib/supabase'
 import { useSite } from '../lib/site'
 import { useCarrinho } from '../lib/carrinho'
+import { Carregando, ErroCarregamento } from '../components/Estado'
+import { useTitulo } from '../hooks/useTitulo'
 
 /**
  * Provador: peças com PNG de fundo removido são empilhadas sobre um manequim.
@@ -31,22 +33,30 @@ const NOMES_CAMADA = {
 export default function Closet() {
   const { texto } = useSite()
   const { adicionar } = useCarrinho()
+  useTitulo('Closet', 'Monte o look no provador virtual da Lobas Brechó.')
   const palco = useRef(null)
 
   const [disponiveis, setDisponiveis] = useState(null)
+  const [erroDisponiveis, setErroDisponiveis] = useState(false)
+  const [tentativa, setTentativa] = useState(0)
   const [vestidas, setVestidas] = useState([])   // { peca, x, y, escala }
 
   useEffect(() => {
     let vivo = true
+    setDisponiveis(null)
+    setErroDisponiveis(false)
     supabase
       .from('pecas')
       .select('*')
       .eq('status', 'disponivel')
       .not('closet_foto', 'is', null)
       .order('criada_em', { ascending: false })
-      .then(({ data }) => vivo && setDisponiveis(data || []))
+      .then(({ data, error }) => {
+        if (!vivo) return
+        error ? setErroDisponiveis(true) : setDisponiveis(data || [])
+      })
     return () => { vivo = false }
-  }, [])
+  }, [tentativa])
 
   const vestir = (peca) => {
     setVestidas((atual) => {
@@ -125,8 +135,14 @@ export default function Closet() {
         <aside className="col-span-12 lg:col-span-5">
           <p className="mb-5 font-stencil text-xs tracking-[0.4em] text-sangue">PEÇAS DISPONÍVEIS</p>
 
-          {disponiveis === null ? (
-            <p className="font-stencil text-sm tracking-[0.3em] text-osso/30">CARREGANDO</p>
+          {erroDisponiveis ? (
+            <ErroCarregamento
+              className="py-10"
+              mensagem="Não foi possível carregar as peças do provador."
+              onTentar={() => setTentativa((t) => t + 1)}
+            />
+          ) : disponiveis === null ? (
+            <Carregando className="py-10" />
           ) : disponiveis.length === 0 ? (
             <div className="border border-dashed border-osso/15 p-10 text-center">
               <p className="font-stencil text-sm tracking-[0.3em] text-osso/40">PROVADOR VAZIO</p>

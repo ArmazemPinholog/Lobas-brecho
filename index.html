@@ -5,6 +5,22 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Lobas Brechó — Duas lobas. Uma energia.</title>
     <meta name="description" content="Brechó curado de peças únicas. Estilo com identidade, sem gênero." />
+
+    <!-- Open Graph / redes sociais: como o site é uma SPA sem servidor próprio
+         (Vite puro, sem SSR), essas tags cobrem o compartilhamento da home.
+         Páginas internas trocam o <title> pelo navegador (ver src/hooks/useTitulo.js),
+         mas isso não alcança crawler de rede social, que não roda JS — pra ter
+         OG por página de verdade seria preciso pré-renderizar ou migrar pra SSR. -->
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="Lobas Brechó" />
+    <meta property="og:title" content="Lobas Brechó — Duas lobas. Uma energia." />
+    <meta property="og:description" content="Brechó curado de peças únicas. Estilo com identidade, sem gênero." />
+    <meta property="og:image" content="/brand/BRANDING_PRINCIPAL_.png" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="Lobas Brechó — Duas lobas. Uma energia." />
+    <meta name="twitter:description" content="Brechó curado de peças únicas. Estilo com identidade, sem gênero." />
+    <meta name="twitter:image" content="/brand/BRANDING_PRINCIPAL_.png" />
+
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Anton&family=Bebas+Neue&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet" />

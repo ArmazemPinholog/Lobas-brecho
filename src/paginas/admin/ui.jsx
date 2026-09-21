@@ -59,20 +59,61 @@ export function Aviso({ tipo = 'ok', children }) {
 }
 
 /**
+ * Redimensiona e recomprime uma imagem no navegador antes do upload.
+ * PNG mantém a transparência (o provador virtual depende dela) e só é
+ * redimensionado; os outros formatos viram JPEG, bem mais leve para
+ * fotos comuns. Qualquer erro no canvas devolve o arquivo original —
+ * a foto nunca deixa de subir por causa da otimização.
+ */
+async function comprimirImagem(arquivo, { maxLargura = 1600, maxAltura = 1600, qualidade = 0.82 } = {}) {
+  if (!arquivo.type?.startsWith('image/') || arquivo.type === 'image/svg+xml') return arquivo
+
+  try {
+    const bitmap = await createImageBitmap(arquivo)
+    const escala = Math.min(1, maxLargura / bitmap.width, maxAltura / bitmap.height)
+
+    // Já é pequena: reprocessar só gastaria bateria à toa.
+    if (escala >= 1 && arquivo.size < 400_000) {
+      bitmap.close?.()
+      return arquivo
+    }
+
+    const largura = Math.max(1, Math.round(bitmap.width * escala))
+    const altura = Math.max(1, Math.round(bitmap.height * escala))
+    const canvas = document.createElement('canvas')
+    canvas.width = largura
+    canvas.height = altura
+    canvas.getContext('2d').drawImage(bitmap, 0, 0, largura, altura)
+    bitmap.close?.()
+
+    const manterAlpha = arquivo.type === 'image/png'
+    const tipoSaida = manterAlpha ? 'image/png' : 'image/jpeg'
+    const blob = await new Promise((resolve) => canvas.toBlob(resolve, tipoSaida, qualidade))
+    if (!blob || blob.size >= arquivo.size) return arquivo
+
+    const nomeBase = arquivo.name.replace(/\.[^.]+$/, '')
+    return new File([blob], `${nomeBase}.${manterAlpha ? 'png' : 'jpg'}`, { type: tipoSaida })
+  } catch {
+    return arquivo
+  }
+}
+
+/**
  * Envia um arquivo para o Storage e devolve o caminho salvo.
  * O nome ganha data e sufixo aleatório: dois arquivos "frente.jpg"
  * de peças diferentes não se sobrescrevem.
  */
-export async function enviarArquivo(arquivo, bucket, pasta = '') {
-  const extensao = arquivo.name.split('.').pop().toLowerCase()
+export async function enviarArquivo(arquivo, bucket, pasta = '', { comprimir = true } = {}) {
+  const arquivoFinal = comprimir ? await comprimirImagem(arquivo) : arquivo
+  const extensao = arquivoFinal.name.split('.').pop().toLowerCase()
   const nome = `${pasta ? pasta + '/' : ''}${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${extensao}`
-  const { error } = await supabase.storage.from(bucket).upload(nome, arquivo, { cacheControl: '31536000' })
+  const { error } = await supabase.storage.from(bucket).upload(nome, arquivoFinal, { cacheControl: '31536000' })
   if (error) throw error
   return nome
 }
 
 /** Botão de envio de arquivo com estado de carregamento embutido. */
-export function BotaoUpload({ rotulo = 'ENVIAR ARQUIVO', aceita = 'image/*', bucket, pasta, multiplo = false, onPronto }) {
+export function BotaoUpload({ rotulo = 'ENVIAR ARQUIVO', aceita = 'image/*', bucket, pasta, multiplo = false, comprimir = true, onPronto }) {
   const [enviando, setEnviando] = useState(false)
   const [erro, setErro] = useState('')
 
@@ -83,7 +124,7 @@ export function BotaoUpload({ rotulo = 'ENVIAR ARQUIVO', aceita = 'image/*', buc
     setErro('')
     try {
       const caminhos = []
-      for (const a of arquivos) caminhos.push(await enviarArquivo(a, bucket, pasta))
+      for (const a of arquivos) caminhos.push(await enviarArquivo(a, bucket, pasta, { comprimir }))
       onPronto(multiplo ? caminhos : caminhos[0])
     } catch (err) {
       setErro('Falha no envio: ' + err.message)
