@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { Link, NavLink } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
-import { ShoppingBag, Instagram } from 'lucide-react'
+import { Instagram } from 'lucide-react'
 import Estrela from './Estrela'
 import { useCarrinho } from '../lib/carrinho'
 import { useSite } from '../lib/site'
@@ -84,7 +84,11 @@ export default function Navegacao() {
               data-cursor="Sacola"
               aria-label={`Abrir sacola com ${itens.length} peças`}
             >
-              <ShoppingBag size={18} strokeWidth={1.5} />
+              {/* A loba da marca no lugar do ícone genérico de sacola —
+                  altura um pouco maior que um ícone comum porque é uma foto,
+                  não um traço simples; precisa desse tanto pra continuar
+                  legível nesse tamanho. */}
+              <img src="/brand/loba-sacola.png" alt="" aria-hidden="true" className="h-11 w-auto object-contain" />
               <span className="font-stencil text-xs tracking-[0.25em]">
                 {String(itens.length).padStart(2, '0')}
               </span>

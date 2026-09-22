@@ -82,8 +82,19 @@ function useFotoIluminada(src) {
   return saida
 }
 
+// Limite do arrasto: NÃO é o tamanho do palco. O framer-motion, com
+// dragConstraints ligado a um elemento, trava a CAIXA INTEIRA da peça
+// dentro da caixa do palco — e como a foto já ocupa quase toda a largura
+// do palco (pra aparecer num tamanho decente), sobrava uma margem mínima
+// antes de travar na borda, dando a sensação de "não consigo arrastar pro
+// lugar certo". Uma folga fixa e generosa (bem maior que o palco) resolve:
+// o palco já corta visualmente o que passa da borda (overflow-hidden), então
+// arrastar a peça mais longe só desliza ela até quase sair de vista, sem
+// nunca travar antes da hora.
+const FOLGA_ARRASTO = { left: -260, right: 260, top: -320, bottom: 320 }
+
 /** Uma peça vestida no manequim: arrasto, escala e o retoque de luz por cima. */
-function PecaVestida({ v, palco, ajustar }) {
+function PecaVestida({ v, ajustar }) {
   const fonteOriginal = urlArquivo(v.peca.closet_foto)
   const fonte = useFotoIluminada(fonteOriginal)
 
@@ -92,7 +103,8 @@ function PecaVestida({ v, palco, ajustar }) {
       src={fonte}
       alt={v.peca.nome}
       drag
-      dragConstraints={palco}
+      dragConstraints={FOLGA_ARRASTO}
+      dragElastic={0.15}
       dragMomentum={false}
       onDragEnd={(_, info) => ajustar(v.peca.id, { x: v.x + info.offset.x, y: v.y + info.offset.y })}
       style={{
@@ -230,7 +242,7 @@ export default function Closet() {
             )}
 
             {vestidas.map((v) => (
-              <PecaVestida key={v.peca.id} v={v} palco={palco} ajustar={ajustar} />
+              <PecaVestida key={v.peca.id} v={v} ajustar={ajustar} />
             ))}
 
             {vestidas.length === 0 && (

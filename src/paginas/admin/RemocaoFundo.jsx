@@ -376,6 +376,13 @@ export default function RemocaoFundo({ bucket, pasta, onPronto }) {
     try {
       const { removeBackground } = await import('@imgly/background-removal')
       const resultado = await removeBackground(arquivo, {
+        // "large" é o modelo de precisão cheia (o padrão da biblioteca é
+        // "medium", uma versão comprimida pra ficar mais rápida). Cadastro
+        // de peça é uma ação manual, feita de vez em quando — vale a pena
+        // esperar alguns segundos a mais e baixar um modelo maior pra
+        // acertar detalhes finos (alças, vãos entre braço e corpo, recortes),
+        // em vez de otimizar pra velocidade como a biblioteca faz por padrão.
+        model: 'large',
         progress: (_etapa, atual, total) => {
           if (total) setProgresso(Math.round((atual / total) * 100))
         },
