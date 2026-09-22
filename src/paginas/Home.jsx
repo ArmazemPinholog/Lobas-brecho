@@ -3,6 +3,7 @@ import Hero from '../components/Hero'
 import Faixa from '../components/Faixa'
 import GradeDePecas from '../components/GradeDePecas'
 import Manifesto from '../components/Manifesto'
+import Destaques from '../components/Destaques'
 import { useSite } from '../lib/site'
 
 export default function Home() {
@@ -11,6 +12,7 @@ export default function Home() {
   return (
     <>
       <Hero />
+      <Destaques />
       <Faixa />
 
       <section className="mx-auto max-w-[1600px] px-6 py-28 md:px-12 md:py-40">

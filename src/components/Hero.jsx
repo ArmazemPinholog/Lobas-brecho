@@ -1,4 +1,4 @@
-import { lazy, Suspense, useLayoutEffect, useRef } from 'react'
+import { lazy, Suspense, useLayoutEffect, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
 import gsap from 'gsap'
 import Estrela from './Estrela'
@@ -12,6 +12,12 @@ const HeroScene = lazy(() => import('../three/HeroScene'))
 export default function Hero() {
   const raiz = useRef(null)
   const { texto, carregando } = useSite()
+  // Close nos olhos: ativado ao passar o mouse em qualquer ponto da hero,
+  // não só sobre o vídeo — o wrapper do vídeo fica atrás do grid de texto
+  // (z-10), que cobre a largura toda, então um :hover em CSS no próprio
+  // vídeo nunca dispararia. Ouvindo no <section> isso não depende de qual
+  // elemento está por cima em cada pixel.
+  const [olhosAtivos, setOlhosAtivos] = useState(false)
 
   useLayoutEffect(() => {
     // Só anima depois que os textos chegaram: animar o estado vazio
@@ -27,7 +33,12 @@ export default function Hero() {
   }, [carregando])
 
   return (
-    <section ref={raiz} className="relative flex min-h-[100svh] flex-col justify-end overflow-hidden pb-16 pt-32">
+    <section
+      ref={raiz}
+      onMouseEnter={() => setOlhosAtivos(true)}
+      onMouseLeave={() => setOlhosAtivos(false)}
+      className="relative flex min-h-[100svh] flex-col justify-end overflow-hidden pb-16 pt-32"
+    >
       {/* Lobo em vídeo: camada atmosférica atrás da estrela 3D, que continua
           sendo o símbolo principal da marca. Fundo preto puro do vídeo some
           com mix-blend-screen, igual à técnica já usada no ELEMENTO_3 do
@@ -47,6 +58,17 @@ export default function Hero() {
           <source src="/video/hero-lobo.webm" type="video/webm" />
           <source src="/video/hero-lobo.mp4" type="video/mp4" />
         </video>
+
+        {/* Close nos olhos do lobo: revelado no hover da hero inteira (ver
+            comentário acima do estado). Fica só nesse recorte à direita, onde
+            o vídeo já está — como um corte de câmera pro close. */}
+        <div
+          aria-hidden="true"
+          style={{ backgroundImage: 'url(/brand/lobo-olhos.png)' }}
+          className={`pointer-events-none absolute inset-0 m-auto h-[46%] w-[85%] bg-contain bg-center bg-no-repeat mix-blend-screen transition-all duration-700 ease-loba ${
+            olhosAtivos ? 'scale-100 opacity-90' : 'scale-95 opacity-0'
+          }`}
+        />
       </div>
 
       <div data-reveal="canvas" className="absolute inset-0 z-0">
