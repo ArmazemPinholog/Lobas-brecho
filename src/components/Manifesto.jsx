@@ -47,18 +47,25 @@ export default function Manifesto() {
 
   return (
     <section ref={raiz} className="relative overflow-hidden border-y border-osso/10 bg-[#0d0d0d] py-28 md:py-44">
+      {/* No mobile a pata some — nesse tamanho de tela ela só duplicava a
+          silhueta do lobo por cima do texto (era o "sobreposto comendo o
+          espaço um do outro"). A partir do sm ela volta, bem menor do que
+          antes, e só ganha o tamanho grande original lá no md. */}
       <img
         data-pata src="/brand/ELEMENTO_3.png" alt="" aria-hidden="true"
         onError={(e) => { e.currentTarget.style.display = 'none' }}
-        className="pointer-events-none absolute -right-16 top-1/2 w-[28rem] -translate-y-1/2 opacity-[0.12] mix-blend-screen md:w-[42rem]"
+        className="pointer-events-none absolute -right-10 top-1/2 hidden w-[16rem] -translate-y-1/2 opacity-[0.12] mix-blend-screen sm:block sm:w-[22rem] md:w-[42rem]"
       />
       {/* O lobo como motivo central da seção — antes ficava discreto
           demais (9% de opacidade) e sumia atrás do texto. Agora ele
           aparece de verdade, com o olho aceso, e o texto continua
-          legível porque o título é sólido (osso/vermelho) por cima. */}
+          legível porque o título é sólido (osso/vermelho) por cima.
+          No mobile ele entra bem menor (era w-[30rem] = maior que a
+          própria tela, cobrindo o texto inteiro) e cresce progressivamente
+          até o tamanho grande original a partir do md. */}
       <div
         data-lobo-perfil
-        className="pointer-events-none absolute -left-10 top-[4%] w-[30rem] opacity-[0.42] mix-blend-screen md:-left-2 md:top-[2%] md:w-[42rem] lg:w-[50rem]"
+        className="pointer-events-none absolute -left-6 top-[6%] w-[13rem] opacity-[0.3] mix-blend-screen sm:-left-8 sm:top-[4%] sm:w-[20rem] sm:opacity-[0.38] md:-left-2 md:top-[2%] md:w-[42rem] md:opacity-[0.42] lg:w-[50rem]"
       >
         <img
           src="/brand/lobo-perfil-osso.png" alt="" aria-hidden="true"

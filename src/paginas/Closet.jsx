@@ -93,20 +93,52 @@ function useFotoIluminada(src) {
 // nunca travar antes da hora.
 const FOLGA_ARRASTO = { left: -260, right: 260, top: -320, bottom: 320 }
 
+/**
+ * O framer-motion, quando `drag` está ligado, marca o elemento com
+ * touch-action: none — é assim que ele consegue capturar o gesto em
+ * qualquer direção pro arrasto livre. Só que isso também bloqueia o
+ * scroll nativo da página em qualquer toque que comece em cima da peça.
+ * No celular a peça cobre boa parte da tela do provador, então o dedo
+ * quase sempre encosta nela ao tentar rolar — e a pessoa fica presa,
+ * sem conseguir nem trocar de peça (a arara fica mais abaixo) nem
+ * chegar no "LEVAR O LOOK". Arrasto de precisão com o dedo também não
+ * é um gesto natural em touch do jeito que é com o mouse. Por isso o
+ * arrasto só liga de verdade em ponteiro fino (mouse/trackpad); no
+ * touch a peça fica fixa e a rolagem da página funciona normalmente.
+ */
+function usePonteiroFino() {
+  const [fino, setFino] = useState(
+    () => typeof window !== 'undefined' && window.matchMedia('(pointer: fine)').matches
+  )
+  useEffect(() => {
+    const consulta = window.matchMedia('(pointer: fine)')
+    const atualizar = () => setFino(consulta.matches)
+    atualizar()
+    consulta.addEventListener('change', atualizar)
+    return () => consulta.removeEventListener('change', atualizar)
+  }, [])
+  return fino
+}
+
 /** Uma peça vestida no manequim: arrasto, escala e o retoque de luz por cima. */
 function PecaVestida({ v, ajustar }) {
   const fonteOriginal = urlArquivo(v.peca.closet_foto)
   const fonte = useFotoIluminada(fonteOriginal)
+  const podeArrastar = usePonteiroFino()
 
   return (
     <motion.img
       src={fonte}
       alt={v.peca.nome}
-      drag
+      drag={podeArrastar}
       dragConstraints={FOLGA_ARRASTO}
       dragElastic={0.15}
       dragMomentum={false}
-      onDragEnd={(_, info) => ajustar(v.peca.id, { x: v.x + info.offset.x, y: v.y + info.offset.y })}
+      onDragEnd={
+        podeArrastar
+          ? (_, info) => ajustar(v.peca.id, { x: v.x + info.offset.x, y: v.y + info.offset.y })
+          : undefined
+      }
       style={{
         zIndex: CAMADAS[v.peca.closet_slot] || 25,
         scale: v.escala,
@@ -115,9 +147,15 @@ function PecaVestida({ v, ajustar }) {
         // peça do fundo, como se estivesse apoiada no corpo, não boiando
         // por cima da foto.
         filter: 'drop-shadow(0 10px 14px rgba(0,0,0,0.55)) drop-shadow(0 2px 5px rgba(0,0,0,0.4)) drop-shadow(0 0 1px rgba(0,0,0,0.3))',
+        // Sem isso o touch-action herdado do drag continua "none" mesmo
+        // depois de desligar `drag` em alguns navegadores — deixando
+        // explícito que no touch o toque aqui é só rolagem normal.
+        touchAction: podeArrastar ? 'none' : 'auto',
       }}
-      className="absolute inset-0 m-auto max-h-[78%] w-auto cursor-grab object-contain active:cursor-grabbing"
-      data-cursor="Arraste"
+      className={`absolute inset-0 m-auto max-h-[78%] w-auto object-contain ${
+        podeArrastar ? 'cursor-grab active:cursor-grabbing' : ''
+      }`}
+      data-cursor={podeArrastar ? 'Arraste' : undefined}
     />
   )
 }
