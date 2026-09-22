@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+import { lazy, Suspense, useEffect, useRef, useState } from 'react'
 import { motion } from 'framer-motion'
 import { RotateCcw, Trash2, ShoppingBag, Minus, Plus } from 'lucide-react'
 import { supabase, urlArquivo, precoVigente, dinheiro } from '../lib/supabase'
@@ -6,6 +6,10 @@ import { useSite } from '../lib/site'
 import { useCarrinho } from '../lib/carrinho'
 import { Carregando, ErroCarregamento } from '../components/Estado'
 import { useTitulo } from '../hooks/useTitulo'
+
+// Mesmo motivo do Hero: three.js/@react-three/fiber só carregam quando o
+// Closet realmente monta, sem pesar no bundle principal do site.
+const ManequimScene = lazy(() => import('../three/ManequimScene'))
 
 /**
  * Provador: peças com PNG de fundo removido são empilhadas sobre um manequim.
@@ -86,7 +90,11 @@ export default function Closet() {
             ref={palco}
             className="relative mx-auto aspect-[3/4] w-full max-w-[34rem] overflow-hidden border border-osso/10 bg-gradient-to-b from-[#161616] to-[#0d0d0d]"
           >
-            <Manequim />
+            <div className="absolute inset-0">
+              <Suspense fallback={null}>
+                <ManequimScene />
+              </Suspense>
+            </div>
 
             {vestidas.map((v) => (
               <motion.img
@@ -204,24 +212,5 @@ export default function Closet() {
         </aside>
       </div>
     </section>
-  )
-}
-
-/** Manequim desenhado em vetor: sem foto para carregar e escala em qualquer tela. */
-function Manequim() {
-  return (
-    <svg viewBox="0 0 300 400" className="absolute inset-0 h-full w-full" aria-hidden="true">
-      <g fill="none" stroke="#F2EFE9" strokeOpacity="0.22" strokeWidth="1.2">
-        <ellipse cx="150" cy="52" rx="23" ry="29" />
-        <path d="M150 81 v18" />
-        <path d="M150 99 C118 104 104 122 100 152 C97 178 99 206 104 228 L196 228 C201 206 203 178 200 152 C196 122 182 104 150 99 Z" />
-        <path d="M108 112 C92 126 86 152 84 178" />
-        <path d="M192 112 C208 126 214 152 216 178" />
-        <path d="M118 228 C116 268 118 312 122 350" />
-        <path d="M182 228 C184 268 182 312 178 350" />
-        <path d="M150 228 v122" />
-        <path d="M112 352 h22 M166 352 h22" />
-      </g>
-    </svg>
   )
 }

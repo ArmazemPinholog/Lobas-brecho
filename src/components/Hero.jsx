@@ -1,4 +1,4 @@
-import { lazy, Suspense, useLayoutEffect, useRef, useState } from 'react'
+import { lazy, Suspense, useLayoutEffect, useRef } from 'react'
 import { Link } from 'react-router-dom'
 import gsap from 'gsap'
 import Estrela from './Estrela'
@@ -12,12 +12,6 @@ const HeroScene = lazy(() => import('../three/HeroScene'))
 export default function Hero() {
   const raiz = useRef(null)
   const { texto, carregando } = useSite()
-  // Close nos olhos: ativado ao passar o mouse em qualquer ponto da hero,
-  // não só sobre o vídeo — o wrapper do vídeo fica atrás do grid de texto
-  // (z-10), que cobre a largura toda, então um :hover em CSS no próprio
-  // vídeo nunca dispararia. Ouvindo no <section> isso não depende de qual
-  // elemento está por cima em cada pixel.
-  const [olhosAtivos, setOlhosAtivos] = useState(false)
 
   useLayoutEffect(() => {
     // Só anima depois que os textos chegaram: animar o estado vazio
@@ -35,16 +29,25 @@ export default function Hero() {
   return (
     <section
       ref={raiz}
-      onMouseEnter={() => setOlhosAtivos(true)}
-      onMouseLeave={() => setOlhosAtivos(false)}
       className="relative flex min-h-[100svh] flex-col justify-end overflow-hidden pb-16 pt-32"
     >
-      {/* Lobo em vídeo: camada atmosférica atrás da estrela 3D, que continua
-          sendo o símbolo principal da marca. Fundo preto puro do vídeo some
-          com mix-blend-screen, igual à técnica já usada no ELEMENTO_3 do
-          Manifesto — sem precisar de chroma-key. Escondido no mobile para
-          não pesar em conexão/bateria numa faixa estreita demais pra valer. */}
-      <div aria-hidden="true" className="pointer-events-none absolute inset-y-0 right-0 z-0 hidden w-[46%] items-center overflow-hidden lg:flex">
+      {/* Lobo em vídeo: só o rosto, camada única e opaca, sempre ACIMA da
+          cena 3D (z-[1] > z-0 do canvas) — nada da HeroScene (estrela,
+          cabide etc.) pode aparecer por cima ou através dela. Por isso o
+          blend fica em "normal", não "screen": screen deixaria o fundo
+          escuro do vídeo transparente e a estrela vazaria por trás mesmo
+          com o z-index correto. A borda funde com o fundo breu da página
+          via máscara em gradiente, sem precisar de chroma-key nem de
+          sobrepor nenhuma outra imagem. Escondido no mobile para não pesar
+          em conexão/bateria numa faixa estreita demais pra valer. */}
+      <div
+        aria-hidden="true"
+        style={{
+          WebkitMaskImage: 'radial-gradient(120% 100% at 65% 50%, #000 55%, transparent 100%)',
+          maskImage: 'radial-gradient(120% 100% at 65% 50%, #000 55%, transparent 100%)',
+        }}
+        className="pointer-events-none absolute inset-y-0 right-0 z-[1] hidden w-[46%] items-center overflow-hidden lg:flex"
+      >
         <video
           autoPlay
           muted
@@ -52,23 +55,12 @@ export default function Hero() {
           playsInline
           preload="metadata"
           poster="/video/hero-lobo-poster.jpg"
-          className="h-[88%] w-full object-cover object-center opacity-60 mix-blend-screen"
+          className="h-[88%] w-full object-cover object-center"
           onError={(e) => { e.currentTarget.style.display = 'none' }}
         >
           <source src="/video/hero-lobo.webm" type="video/webm" />
           <source src="/video/hero-lobo.mp4" type="video/mp4" />
         </video>
-
-        {/* Close nos olhos do lobo: revelado no hover da hero inteira (ver
-            comentário acima do estado). Fica só nesse recorte à direita, onde
-            o vídeo já está — como um corte de câmera pro close. */}
-        <div
-          aria-hidden="true"
-          style={{ backgroundImage: 'url(/brand/lobo-olhos.png)' }}
-          className={`pointer-events-none absolute inset-0 m-auto h-[46%] w-[85%] bg-contain bg-center bg-no-repeat mix-blend-screen transition-all duration-700 ease-loba ${
-            olhosAtivos ? 'scale-100 opacity-90' : 'scale-95 opacity-0'
-          }`}
-        />
       </div>
 
       <div data-reveal="canvas" className="absolute inset-0 z-0">
