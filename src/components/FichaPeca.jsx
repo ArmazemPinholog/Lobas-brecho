@@ -52,6 +52,14 @@ export default function FichaPeca({ peca, onFechar }) {
 
         <motion.div
           role="dialog" aria-modal="true" aria-label={peca.nome}
+          // O Lenis (rolagem suave) escuta a roda do mouse/toque na página
+          // inteira por padrão — sem esse atributo ele intercepta o gesto
+          // mesmo em cima da ficha e tenta rolar a página de fundo (que está
+          // travada enquanto a ficha está aberta), então a rolagem daqui de
+          // dentro nunca chegava a acontecer. Só dava pra ver o resto do
+          // texto arrastando a barrinha na mão. `data-lenis-prevent` avisa o
+          // Lenis pra deixar esse elemento rolar do jeito nativo normal.
+          data-lenis-prevent
           variants={{ fechado: { y: 60, opacity: 0, scale: 0.97 }, aberto: { y: 0, opacity: 1, scale: 1 } }}
           transition={{ type: 'spring', stiffness: 220, damping: 26 }}
           className="relative grid max-h-[92svh] w-full max-w-5xl grid-cols-1 overflow-y-auto bg-[#0f0f0f] md:grid-cols-2"

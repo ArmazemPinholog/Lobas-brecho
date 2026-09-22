@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import { supabase } from '../lib/supabase'
 import CardPeca, { tamanhoCard } from './CardPeca'
 import FichaPeca from './FichaPeca'
@@ -27,6 +27,13 @@ export default function GradeDePecas({ limite = null, somenteDestaques = false }
   const [aberta, setAberta] = useState(null)
 
   const paginar = !limite
+
+  // Referência estável: sem isso, `onFechar` seria uma função nova a cada
+  // vez que esta grade renderiza de novo (ex: ao carregar mais peças) — e
+  // como o efeito de travar/destravar o scroll na FichaPeca depende dessa
+  // função, ele ficava religando/desligando o Lenis toda hora, mesmo sem
+  // a ficha ter sido aberta ou fechada de verdade.
+  const fecharFicha = useCallback(() => setAberta(null), [])
 
   useEffect(() => {
     let vivo = true
@@ -113,7 +120,7 @@ export default function GradeDePecas({ limite = null, somenteDestaques = false }
         </div>
       )}
 
-      <FichaPeca peca={aberta} onFechar={() => setAberta(null)} />
+      <FichaPeca peca={aberta} onFechar={fecharFicha} />
     </>
   )
 }
