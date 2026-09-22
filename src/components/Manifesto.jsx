@@ -32,6 +32,13 @@ export default function Manifesto() {
         yPercent: 8, xPercent: 2, ease: 'none',
         scrollTrigger: { trigger: raiz.current, start: 'top bottom', end: 'bottom top', scrub: true },
       })
+      // Olho do lobo: um brilho vermelho pulsando devagar, tipo brasa —
+      // é o que faz o olhar dele "acender" em vez de ficar só uma
+      // silhueta apagada atrás do texto.
+      gsap.to('[data-lobo-olho]', {
+        opacity: 0.95, scale: 1.25, duration: 1.9, ease: 'sine.inOut',
+        repeat: -1, yoyo: true, transformOrigin: 'center center',
+      })
     }, raiz)
     return () => ctx.revert()
   }, [carregando])
@@ -45,13 +52,26 @@ export default function Manifesto() {
         onError={(e) => { e.currentTarget.style.display = 'none' }}
         className="pointer-events-none absolute -right-16 top-1/2 w-[28rem] -translate-y-1/2 opacity-[0.12] mix-blend-screen md:w-[42rem]"
       />
-      {/* O lobo entra aqui como motivo recorrente, mas discreto: gravura em
-          silhueta, baixa opacidade, sem disputar com o texto. */}
-      <img
-        data-lobo-perfil src="/brand/lobo-perfil-osso.png" alt="" aria-hidden="true"
-        onError={(e) => { e.currentTarget.style.display = 'none' }}
-        className="pointer-events-none absolute -left-24 top-[12%] w-[22rem] opacity-[0.09] mix-blend-screen md:w-[32rem]"
-      />
+      {/* O lobo como motivo central da seção — antes ficava discreto
+          demais (9% de opacidade) e sumia atrás do texto. Agora ele
+          aparece de verdade, com o olho aceso, e o texto continua
+          legível porque o título é sólido (osso/vermelho) por cima. */}
+      <div
+        data-lobo-perfil
+        className="pointer-events-none absolute -left-10 top-[4%] w-[30rem] opacity-[0.42] mix-blend-screen md:-left-2 md:top-[2%] md:w-[42rem] lg:w-[50rem]"
+      >
+        <img
+          src="/brand/lobo-perfil-osso.png" alt="" aria-hidden="true"
+          onError={(e) => { e.currentTarget.closest('[data-lobo-perfil]').style.display = 'none' }}
+          className="w-full"
+        />
+        <span
+          data-lobo-olho
+          aria-hidden="true"
+          style={{ left: '73%', top: '18.5%' }}
+          className="absolute h-[7%] w-[7%] -translate-x-1/2 -translate-y-1/2 rounded-full bg-sangue opacity-60 blur-[7px]"
+        />
+      </div>
       <div className="relative mx-auto grid max-w-[1600px] grid-cols-12 gap-y-14 px-6 md:px-12">
         <div className="col-span-12 lg:col-span-7">
           <h2 className="font-display uppercase leading-[0.86] text-osso">
