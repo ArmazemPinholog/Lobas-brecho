@@ -5,6 +5,7 @@ import { ShoppingBag, Instagram } from 'lucide-react'
 import Estrela from './Estrela'
 import { useCarrinho } from '../lib/carrinho'
 import { useSite } from '../lib/site'
+import { useAuth } from '../lib/auth'
 
 const links = [
   { rotulo: 'Acervo', para: '/acervo' },
@@ -18,6 +19,10 @@ export default function Navegacao() {
   const [descolado, setDescolado] = useState(false)
   const { itens, setAberto: abrirSacola } = useCarrinho()
   const { config } = useSite()
+  const { sessao } = useAuth()
+  // Já logada, vai direto pro painel — senão, pro login. Um item só,
+  // o destino é que muda.
+  const admLink = { rotulo: 'ADMS', para: sessao ? '/admin' : '/entrar' }
 
   useEffect(() => {
     const aoRolar = () => setDescolado(window.scrollY > 80)
@@ -50,6 +55,13 @@ export default function Navegacao() {
                 <span className="absolute -bottom-1 left-0 h-px w-0 bg-sangue transition-all duration-500 ease-loba group-hover:w-full" />
               </NavLink>
             ))}
+            <NavLink
+              to={admLink.para}
+              className="group relative font-stencil text-xs tracking-[0.3em] text-sangue/70 transition-colors hover:text-sangue"
+            >
+              {admLink.rotulo}
+              <span className="absolute -bottom-1 left-0 h-px w-0 bg-sangue transition-all duration-500 ease-loba group-hover:w-full" />
+            </NavLink>
           </nav>
 
           <div className="flex items-center gap-5">
@@ -116,6 +128,20 @@ export default function Navegacao() {
                 </Link>
               </motion.div>
             ))}
+            <motion.div
+              initial={{ opacity: 0, y: 40 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.15 + links.length * 0.08, type: 'spring', stiffness: 220, damping: 24 }}
+            >
+              <Link
+                to={admLink.para}
+                onClick={() => setAberto(false)}
+                className="block border-b border-osso/10 py-6 font-display text-5xl uppercase text-sangue"
+              >
+                {admLink.rotulo}
+              </Link>
+            </motion.div>
+
             {config.endereco && <p className="mt-10 text-sm text-osso/50">{config.endereco}</p>}
             {config.horario && <p className="mt-1 text-sm text-osso/40">{config.horario}</p>}
           </motion.div>

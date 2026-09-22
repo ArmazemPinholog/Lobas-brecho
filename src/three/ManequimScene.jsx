@@ -6,7 +6,20 @@ import { PerspectiveCamera, useGLTF } from '@react-three/drei'
 const OSSO = '#f2efe9'
 const SANGUE = '#e12424'
 
-useGLTF.preload('/modelos/manequim.glb')
+/**
+ * Os dois modelos vieram de fontes diferentes, cada um com sua própria
+ * escala/origem — por isso cada um carrega seu próprio ajuste de posição e
+ * escala pra ficar enquadrado igual dentro da mesma câmera. Os números foram
+ * calculados a partir da caixa delimitadora real de cada malha (three.js
+ * Box3), não chutados.
+ */
+const MODELOS = {
+  masculino: { url: '/modelos/manequim.glb', posicao: [0, 0, 0], escala: 1 },
+  feminino: { url: '/modelos/manequim-feminino.glb', posicao: [0, 0.546, 0.053], escala: 0.1319 },
+}
+
+useGLTF.preload(MODELOS.masculino.url)
+useGLTF.preload(MODELOS.feminino.url)
 
 /**
  * O corpo em si: mesma malha 3D usada em toda peça de provador, mas nunca em
@@ -17,8 +30,9 @@ useGLTF.preload('/modelos/manequim.glb')
  * auto-rotação) de propósito — as fotos de roupa por cima são posicionadas
  * em x/y fixos, e um manequim girando sozinho ia descolar a roupa do corpo.
  */
-function Corpo() {
-  const { scene } = useGLTF('/modelos/manequim.glb')
+function Corpo({ genero }) {
+  const cfg = MODELOS[genero] || MODELOS.masculino
+  const { scene } = useGLTF(cfg.url)
 
   const modelo = useMemo(() => {
     const clone = scene.clone(true)
@@ -33,10 +47,14 @@ function Corpo() {
     return clone
   }, [scene])
 
-  return <primitive object={modelo} />
+  return (
+    <group position={cfg.posicao} scale={cfg.escala}>
+      <primitive object={modelo} />
+    </group>
+  )
 }
 
-export default function ManequimScene() {
+export default function ManequimScene({ genero = 'masculino' }) {
   return (
     <Canvas
       dpr={[1, 1.8]}
@@ -50,8 +68,10 @@ export default function ManequimScene() {
       <directionalLight position={[-2.5, 0.5, -1.5]} intensity={1.5} color={SANGUE} />
       <directionalLight position={[0, -2, 3]} intensity={0.6} color={OSSO} />
 
+      {/* key força remontar ao trocar de modelo — mais simples e mais
+          confiável do que tentar trocar a geometria de um grupo já montado. */}
       <Suspense fallback={null}>
-        <Corpo />
+        <Corpo key={genero} genero={genero} />
       </Suspense>
     </Canvas>
   )

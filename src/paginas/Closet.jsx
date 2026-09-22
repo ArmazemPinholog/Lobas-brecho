@@ -44,6 +44,7 @@ export default function Closet() {
   const [erroDisponiveis, setErroDisponiveis] = useState(false)
   const [tentativa, setTentativa] = useState(0)
   const [vestidas, setVestidas] = useState([])   // { peca, x, y, escala }
+  const [genero, setGenero] = useState('masculino')
 
   useEffect(() => {
     let vivo = true
@@ -86,13 +87,36 @@ export default function Closet() {
       <div className="grid grid-cols-12 gap-8">
         {/* Manequim */}
         <div className="col-span-12 lg:col-span-7">
+          {/* Escolha do manequim: define só a forma do corpo por baixo —
+              as peças já vestidas continuam nos mesmos x/y, então trocar
+              aqui não desmonta o look. */}
+          <div className="mx-auto mb-4 flex max-w-[34rem] gap-2">
+            {[
+              { valor: 'masculino', rotulo: 'MASCULINO' },
+              { valor: 'feminino', rotulo: 'FEMININO' },
+            ].map((opcao) => (
+              <button
+                key={opcao.valor}
+                onClick={() => setGenero(opcao.valor)}
+                aria-pressed={genero === opcao.valor}
+                className={`flex-1 border px-4 py-2.5 font-stencil text-xs tracking-[0.3em] transition-colors ${
+                  genero === opcao.valor
+                    ? 'border-sangue bg-sangue/10 text-osso'
+                    : 'border-osso/12 text-osso/45 hover:border-osso/30 hover:text-osso/70'
+                }`}
+              >
+                {opcao.rotulo}
+              </button>
+            ))}
+          </div>
+
           <div
             ref={palco}
             className="relative mx-auto aspect-[3/4] w-full max-w-[34rem] overflow-hidden border border-osso/10 bg-gradient-to-b from-[#161616] to-[#0d0d0d]"
           >
             <div className="absolute inset-0">
               <Suspense fallback={null}>
-                <ManequimScene />
+                <ManequimScene genero={genero} />
               </Suspense>
             </div>
 
