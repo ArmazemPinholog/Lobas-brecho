@@ -1,6 +1,6 @@
 import { lazy, Suspense, useEffect, useRef, useState } from 'react'
 import { motion } from 'framer-motion'
-import { RotateCcw, Trash2, ShoppingBag, Minus, Plus } from 'lucide-react'
+import { RotateCcw, Trash2, ShoppingBag, Minus, Plus, ArrowUp, ArrowDown, ArrowLeft, ArrowRight } from 'lucide-react'
 import { supabase, urlArquivo, precoVigente, dinheiro } from '../lib/supabase'
 import { useSite } from '../lib/site'
 import { useCarrinho } from '../lib/carrinho'
@@ -93,6 +93,14 @@ function useFotoIluminada(src) {
 // nunca travar antes da hora.
 const FOLGA_ARRASTO = { left: -260, right: 260, top: -320, bottom: 320 }
 
+// No celular o arrasto direto na peça fica fora de cogitação (é o que
+// travava a rolagem — ver comentário do usePonteiroFino logo abaixo), então
+// o ajuste fino de posição vira setinhas de toque. Cada toque move essa
+// quantidade fixa; o clamp usa a mesma folga do arrasto no mouse, pra não
+// dar pra "perder" a peça de vista cutucando as setas repetidas vezes.
+const PASSO_AJUSTE = 16
+const limitar = (valor, min, max) => Math.min(max, Math.max(min, valor))
+
 /**
  * O framer-motion, quando `drag` está ligado, marca o elemento com
  * touch-action: none — é assim que ele consegue capturar o gesto em
@@ -141,6 +149,8 @@ function PecaVestida({ v, ajustar }) {
       }
       style={{
         zIndex: CAMADAS[v.peca.closet_slot] || 25,
+        x: v.x,
+        y: v.y,
         scale: v.escala,
         // Sombra colada na própria peça: acompanha arraste e escala
         // automaticamente (é filtro, não elemento separado) — separa a
@@ -188,6 +198,7 @@ export default function Closet() {
   const { adicionar } = useCarrinho()
   useTitulo('Closet', 'Monte o look no provador virtual da Lobas Brechó.')
   const palco = useRef(null)
+  const podeArrastar = usePonteiroFino()
 
   const [disponiveis, setDisponiveis] = useState(null)
   const [erroDisponiveis, setErroDisponiveis] = useState(false)
@@ -223,6 +234,16 @@ export default function Closet() {
 
   const ajustar = (id, mudanca) =>
     setVestidas((atual) => atual.map((v) => (v.peca.id === id ? { ...v, ...mudanca } : v)))
+
+  // Empurra a peça um passo fixo na direção pedida — a alternativa ao
+  // arrasto no celular. `eixo`/`sinal` em vez de 4 funções separadas.
+  const mover = (v, eixo, sinal) => {
+    if (eixo === 'x') {
+      ajustar(v.peca.id, { x: limitar(v.x + sinal * PASSO_AJUSTE, FOLGA_ARRASTO.left, FOLGA_ARRASTO.right) })
+    } else {
+      ajustar(v.peca.id, { y: limitar(v.y + sinal * PASSO_AJUSTE, FOLGA_ARRASTO.top, FOLGA_ARRASTO.bottom) })
+    }
+  }
 
   const total = vestidas.reduce((s, v) => s + precoVigente(v.peca), 0)
 
@@ -355,28 +376,69 @@ export default function Closet() {
           {vestidas.length > 0 && (
             <div className="mt-8 space-y-3 border-t border-osso/10 pt-6">
               {vestidas.map((v) => (
-                <div key={v.peca.id} className="flex items-center justify-between gap-3">
-                  <span className="min-w-0 flex-1 truncate text-sm text-osso/70">{v.peca.nome}</span>
-                  <div className="flex shrink-0 items-center gap-1">
-                    <button
-                      onClick={() => ajustar(v.peca.id, { escala: Math.max(0.5, v.escala - 0.08) })}
-                      aria-label="Diminuir" className="p-2 text-osso/40 hover:text-osso"
-                    >
-                      <Minus size={13} strokeWidth={1.5} />
-                    </button>
-                    <button
-                      onClick={() => ajustar(v.peca.id, { escala: Math.min(1.8, v.escala + 0.08) })}
-                      aria-label="Aumentar" className="p-2 text-osso/40 hover:text-osso"
-                    >
-                      <Plus size={13} strokeWidth={1.5} />
-                    </button>
-                    <button
-                      onClick={() => vestir(v.peca)}
-                      aria-label="Tirar" className="p-2 text-osso/40 hover:text-sangue"
-                    >
-                      <Trash2 size={13} strokeWidth={1.5} />
-                    </button>
+                <div key={v.peca.id} className="space-y-2">
+                  <div className="flex items-center justify-between gap-3">
+                    <span className="min-w-0 flex-1 truncate text-sm text-osso/70">{v.peca.nome}</span>
+                    <div className="flex shrink-0 items-center gap-1">
+                      <button
+                        onClick={() => ajustar(v.peca.id, { escala: Math.max(0.5, v.escala - 0.08) })}
+                        aria-label="Diminuir" className="p-2 text-osso/40 hover:text-osso"
+                      >
+                        <Minus size={13} strokeWidth={1.5} />
+                      </button>
+                      <button
+                        onClick={() => ajustar(v.peca.id, { escala: Math.min(1.8, v.escala + 0.08) })}
+                        aria-label="Aumentar" className="p-2 text-osso/40 hover:text-osso"
+                      >
+                        <Plus size={13} strokeWidth={1.5} />
+                      </button>
+                      <button
+                        onClick={() => vestir(v.peca)}
+                        aria-label="Tirar" className="p-2 text-osso/40 hover:text-sangue"
+                      >
+                        <Trash2 size={13} strokeWidth={1.5} />
+                      </button>
+                    </div>
                   </div>
+
+                  {/* Setinhas de posição: só no toque. No mouse o arrasto
+                      direto na peça já resolve isso com mais precisão —
+                      duplicar os dois controles ali só ia poluir a tela. */}
+                  {!podeArrastar && (
+                    <div className="flex items-center gap-1.5 pl-0.5">
+                      <span className="font-stencil text-[0.6rem] tracking-[0.25em] text-osso/30">POSIÇÃO</span>
+                      <div className="ml-auto flex items-center gap-1">
+                        <button
+                          onClick={() => mover(v, 'x', -1)}
+                          aria-label="Mover peça para a esquerda"
+                          className="rounded border border-osso/12 p-1.5 text-osso/50 hover:border-osso/30 hover:text-osso active:bg-osso/10"
+                        >
+                          <ArrowLeft size={13} strokeWidth={1.5} />
+                        </button>
+                        <button
+                          onClick={() => mover(v, 'y', -1)}
+                          aria-label="Mover peça para cima"
+                          className="rounded border border-osso/12 p-1.5 text-osso/50 hover:border-osso/30 hover:text-osso active:bg-osso/10"
+                        >
+                          <ArrowUp size={13} strokeWidth={1.5} />
+                        </button>
+                        <button
+                          onClick={() => mover(v, 'y', 1)}
+                          aria-label="Mover peça para baixo"
+                          className="rounded border border-osso/12 p-1.5 text-osso/50 hover:border-osso/30 hover:text-osso active:bg-osso/10"
+                        >
+                          <ArrowDown size={13} strokeWidth={1.5} />
+                        </button>
+                        <button
+                          onClick={() => mover(v, 'x', 1)}
+                          aria-label="Mover peça para a direita"
+                          className="rounded border border-osso/12 p-1.5 text-osso/50 hover:border-osso/30 hover:text-osso active:bg-osso/10"
+                        >
+                          <ArrowRight size={13} strokeWidth={1.5} />
+                        </button>
+                      </div>
+                    </div>
+                  )}
                 </div>
               ))}
             </div>
