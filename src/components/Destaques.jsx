@@ -2,6 +2,7 @@ import { useLayoutEffect, useRef } from 'react'
 import gsap from 'gsap'
 import { ScrollTrigger } from 'gsap/ScrollTrigger'
 import { useSite, linkWhats } from '../lib/site'
+import { useAutoplayVideo } from '../hooks/useAutoplayVideo'
 
 gsap.registerPlugin(ScrollTrigger)
 
@@ -38,8 +39,10 @@ function Selo({ titulo, texto, className }) {
 
 export default function Destaques() {
   const raiz = useRef(null)
+  const video = useRef(null)
   const { texto, config, carregando } = useSite()
   const whats = linkWhats(config.whatsapp, 'Oi! Vi o site e quero saber mais sobre o acervo da Lobas Brechó.')
+  useAutoplayVideo(video)
 
   useLayoutEffect(() => {
     if (carregando) return
@@ -73,6 +76,7 @@ export default function Destaques() {
           >
             <div className="relative aspect-video overflow-hidden rounded-xl bg-black shadow-[inset_0_0_50px_rgba(0,0,0,0.9)] md:rounded-2xl">
               <video
+                ref={video}
                 autoPlay
                 muted
                 loop

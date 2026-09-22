@@ -4,10 +4,13 @@ import gsap from 'gsap'
 import Estrela from './Estrela'
 import BrilhoOlhos from './BrilhoOlhos'
 import { useSite } from '../lib/site'
+import { useAutoplayVideo } from '../hooks/useAutoplayVideo'
 
 export default function Hero() {
   const raiz = useRef(null)
+  const video = useRef(null)
   const { texto, carregando } = useSite()
+  useAutoplayVideo(video)
 
   useLayoutEffect(() => {
     if (carregando) return
@@ -30,6 +33,7 @@ export default function Hero() {
           seção em vez de parecer uma foto colada por cima como antes. */}
       <div data-reveal="fundo" className="absolute inset-0 z-0">
         <video
+          ref={video}
           autoPlay
           muted
           loop
